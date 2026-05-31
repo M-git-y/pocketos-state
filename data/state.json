@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "ts": 1780224478360,
+      "context": "web",
+      "before": null,
+      "metrics": {
+        "energy": 7,
+        "mood": 8,
+        "body": 6,
+        "clarity": 7,
+        "face": 7,
+        "readiness": 8
+      },
+      "note": "Web 端记录"
+    },
+    {
+      "ts": 1780224604493,
+      "context": "manual",
+      "before": {
+        "energy": 7,
+        "mood": 8,
+        "body": 6,
+        "clarity": 7,
+        "face": 7,
+        "readiness": 8
+      },
+      "metrics": {
+        "energy": 3,
+        "mood": 2,
+        "body": 2,
+        "clarity": 3,
+        "face": 2,
+        "readiness": 1
+      },
+      "note": "基准"
+    },
+    {
+      "ts": 1780224604493,
+      "context": "ignite",
+      "before": {
+        "energy": 3,
+        "mood": 2,
+        "body": 2,
+        "clarity": 3,
+        "face": 2,
+        "readiness": 1
+      },
+      "metrics": {
+        "energy": 7,
+        "mood": 8,
+        "body": 7,
+        "clarity": 8,
+        "face": 8,
+        "readiness": 9
+      },
+      "note": "点火后"
+    },
+    {
+      "ts": 1780224610519,
+      "context": "manual",
+      "before": {
+        "energy": 7,
+        "mood": 8,
+        "body": 7,
+        "clarity": 8,
+        "face": 8,
+        "readiness": 9
+      },
+      "metrics": {
+        "energy": 3,
+        "mood": 2,
+        "body": 2,
+        "clarity": 3,
+        "face": 2,
+        "readiness": 1
+      },
+      "note": "基准"
+    },
+    {
+      "ts": 1780224610520,
+      "context": "ignite",
+      "before": {
+        "energy": 3,
+        "mood": 2,
+        "body": 2,
+        "clarity": 3,
+        "face": 2,
+        "readiness": 1
+      },
+      "metrics": {
+        "energy": 7,
+        "mood": 8,
+        "body": 7,
+        "clarity": 8,
+        "face": 8,
+        "readiness": 9
+      },
+      "note": "点火后"
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PocketOS — State Dashboard</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#0f1117; color:#e2e8f0; min-height:100vh; }
+.container { max-width:720px; margin:0 auto; padding:20px 16px 60px; }
+
+/* Header */
+header { text-align:center; padding:30px 0 20px; }
+header h1 { font-size:28px; background:linear-gradient(135deg, #00d4ff, #6366f1, #ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+header .sub { color:#64748b; font-size:13px; margin-top:4px; }
+
+/* Score Cards */
+.score-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:16px 0 24px; }
+.score-card { background:#1a1d2e; border-radius:12px; padding:16px 10px; text-align:center; border:1px solid #252840; }
+.score-emoji { font-size:24px; margin-bottom:6px; }
+.score-value { font-size:36px; font-weight:700; line-height:1; }
+.score-label { font-size:11px; color:#94a3b8; margin-top:4px; }
+.empty-state { grid-column:1/-1; text-align:center; padding:30px; color:#64748b; }
+.empty-state code { color:#00d4ff; background:#1e2332; padding:2px 8px; border-radius:4px; }
+
+/* Delta badges */
+.delta-up { color:#10b981; font-weight:600; font-size:11px; margin-left:2px; }
+.delta-down { color:#ef4444; font-weight:600; font-size:11px; margin-left:2px; }
+
+/* Sections */
+section { margin:24px 0; }
+.section-title { font-size:16px; font-weight:600; color:#94a3b8; padding-bottom:10px; border-bottom:1px solid #1e2332; margin-bottom:14px; }
+.section-title .emoji { margin-right:6px; }
+
+/* Timeline */
+.timeline-item { background:#1a1d2e; border-radius:10px; padding:12px 14px; margin-bottom:8px; border-left:3px solid #252840; }
+.timeline-item:has(.ctx-ignite) { border-left-color:#f59e0b; }
+.timeline-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.ctx-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; letter-spacing:0.5px; }
+.ctx-ignite { background:#f59e0b22; color:#f59e0b; }
+.ctx-morning { background:#f59e0b22; color:#f59e0b; }
+.ctx-manual { background:#00d4ff22; color:#00d4ff; }
+.timeline-time { font-size:11px; color:#64748b; }
+.shift-badge { font-size:10px; font-weight:700; padding:1px 6px; border-radius:8px; }
+.shift-up { background:#10b98122; color:#10b981; }
+.shift-down { background:#ef444422; color:#ef4444; }
+.timeline-scores { font-size:13px; display:flex; flex-wrap:wrap; gap:8px; }
+.timeline-score { font-size:13px; }
+.timeline-note { color:#94a3b8; font-style:italic; font-size:13px; margin-top:4px; padding-left:2px; border-left:2px solid #252840; padding-left:8px; }
+
+/* Charts */
+.chart-row { display:flex; gap:12px; margin-bottom:12px; }
+.chart-cell { flex:1; background:#1a1d2e; border-radius:10px; padding:12px; border:1px solid #252840; min-width:0; }
+.chart-title { font-size:12px; color:#94a3b8; margin-bottom:8px; }
+.chart-svg { width:100%; height:auto; display:block; }
+.chart-label { font-size:9px; fill:#64748b; font-family:monospace; }
+.chart-grid { stroke:#1e2332; stroke-width:1; }
+.chart-empty { color:#64748b; font-size:12px; text-align:center; padding:20px 0; }
+
+/* Stats */
+.stat-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px; }
+.stat-box { background:#1a1d2e; border-radius:10px; padding:14px 8px; text-align:center; border:1px solid #252840; }
+.stat-num { font-size:28px; font-weight:700; background:linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.stat-desc { font-size:10px; color:#64748b; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* Action breakdown */
+.action-breakdown { background:#1a1d2e; border-radius:10px; padding:14px; border:1px solid #252840; }
+.action-bar { display:flex; align-items:center; gap:10px; padding:6px 0; }
+.action-label { width:80px; font-size:12px; color:#94a3b8; text-align:right; flex-shrink:0; }
+.action-bar-fill { flex:1; height:6px; background:#1e2332; border-radius:3px; overflow:hidden; }
+.action-bar-fill div { height:100%; background:linear-gradient(90deg, #00d4ff, #6366f1); border-radius:3px; transition:width 0.5s; }
+.action-count { font-size:12px; color:#64748b; width:24px; text-align:left; flex-shrink:0; }
+
+/* Footer */
+footer { text-align:center; padding:20px 0; color:#475569; font-size:11px; }
+footer a { color:#6366f1; text-decoration:none; }
+
+/* Mobile */
+@media (max-width:480px) {
+  .score-grid { grid-template-columns:repeat(2, 1fr); }
+  .stat-grid { grid-template-columns:repeat(2, 1fr); }
+  .chart-row { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>PocketOS State Dashboard</h1>
+  <div class="sub">Generated 2026-05-31 19:05:27 · 5 entries · 1 day streak</div>
+</header>
+
+<section>
+  <div class="section-title"><span class="emoji">📊</span>Current State — 2026/5/31</div>
+  <div class="score-grid">
+      <div class="score-card">
+        <div class="score-emoji">⚡</div>
+        <div class="score-value" style="color:#f59e0b">7</div>
+        <div class="score-label">Energy </div>
+      </div>
+      <div class="score-card">
+        <div class="score-emoji">🧠</div>
+        <div class="score-value" style="color:#6366f1">8</div>
+        <div class="score-label">Clarity <span class="delta-up">+1</span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-emoji">🌤️</div>
+        <div class="score-value" style="color:#10b981">8</div>
+        <div class="score-label">Mood </div>
+      </div>
+      <div class="score-card">
+        <div class="score-emoji">💪</div>
+        <div class="score-value" style="color:#ef4444">7</div>
+        <div class="score-label">Body <span class="delta-up">+1</span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-emoji">😊</div>
+        <div class="score-value" style="color:#ec4899">8</div>
+        <div class="score-label">Face <span class="delta-up">+1</span></div>
+      </div>
+      <div class="score-card">
+        <div class="score-emoji">🚀</div>
+        <div class="score-value" style="color:#00d4ff">9</div>
+        <div class="score-label">Readiness <span class="delta-up">+1</span></div>
+      </div></div>
+</section>
+
+
+
+
+<section>
+  <div class="section-title"><span class="emoji">📈</span>Trend Charts</div>
+  <div class="chart-row"><div class="chart-cell"><div class="chart-title">⚡ Energy</div>
+    <svg viewBox="0 0 600 120" class="chart-svg">
+      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
+      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
+      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 38.3 L 448.8 76.1 L 590.0 38.3  L 590.0 95.0 L 25.0 95.0 Z" fill="#f59e0b22" stroke="none"/>
+      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 38.3 L 448.8 76.1 L 590.0 38.3 " fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25.0" cy="38.3" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="76.1" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="38.3" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="76.1" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="38.3" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/>
+    </svg></div><div class="chart-cell"><div class="chart-title">🧠 Clarity</div>
+    <svg viewBox="0 0 600 120" class="chart-svg">
+      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
+      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
+      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 28.9 L 448.8 76.1 L 590.0 28.9  L 590.0 95.0 L 25.0 95.0 Z" fill="#6366f122" stroke="none"/>
+      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 28.9 L 448.8 76.1 L 590.0 28.9 " fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25.0" cy="38.3" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="76.1" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="28.9" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="76.1" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="28.9" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/>
+    </svg></div></div>
+<div class="chart-row"><div class="chart-cell"><div class="chart-title">🌤️ Mood</div>
+    <svg viewBox="0 0 600 120" class="chart-svg">
+      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
+      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
+      <path d="M 25.0 28.9 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9  L 590.0 95.0 L 25.0 95.0 Z" fill="#10b98122" stroke="none"/>
+      <path d="M 25.0 28.9 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9 " fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25.0" cy="28.9" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="85.6" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="28.9" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="85.6" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="28.9" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/>
+    </svg></div><div class="chart-cell"><div class="chart-title">💪 Body</div>
+    <svg viewBox="0 0 600 120" class="chart-svg">
+      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
+      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
+      <path d="M 25.0 47.8 L 166.3 85.6 L 307.5 38.3 L 448.8 85.6 L 590.0 38.3  L 590.0 95.0 L 25.0 95.0 Z" fill="#ef444422" stroke="none"/>
+      <path d="M 25.0 47.8 L 166.3 85.6 L 307.5 38.3 L 448.8 85.6 L 590.0 38.3 " fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25.0" cy="47.8" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="85.6" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="38.3" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="85.6" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="38.3" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/>
+    </svg></div></div>
+<div class="chart-row"><div class="chart-cell"><div class="chart-title">😊 Face</div>
+    <svg viewBox="0 0 600 120" class="chart-svg">
+      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
+      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
+      <path d="M 25.0 38.3 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9  L 590.0 95.0 L 25.0 95.0 Z" fill="#ec489922" stroke="none"/>
+      <path d="M 25.0 38.3 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9 " fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25.0" cy="38.3" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="85.6" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="28.9" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="85.6" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="28.9" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/>
+    </svg></div><div class="chart-cell"><div class="chart-title">🚀 Readiness</div>
+    <svg viewBox="0 0 600 120" class="chart-svg">
+      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
+      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
+      <path d="M 25.0 28.9 L 166.3 95.0 L 307.5 19.4 L 448.8 95.0 L 590.0 19.4  L 590.0 95.0 L 25.0 95.0 Z" fill="#00d4ff22" stroke="none"/>
+      <path d="M 25.0 28.9 L 166.3 95.0 L 307.5 19.4 L 448.8 95.0 L 590.0 19.4 " fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="25.0" cy="28.9" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="95.0" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="19.4" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="95.0" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="19.4" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/>
+    </svg></div></div>
+</section>
+
+
+<section>
+  <div class="section-title"><span class="emoji">📋</span>Timeline</div>
+  
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <span class="ctx-badge ctx-ignite">IGNITE</span>
+          <span class="timeline-time">05/31 18:50</span>
+          <span class="shift-badge shift-up">+34</span>
+        </div>
+        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡7</span> <span class="timeline-score" style="color:#6366f1">🧠8</span> <span class="timeline-score" style="color:#10b981">🌤️8</span> <span class="timeline-score" style="color:#ef4444">💪7</span> <span class="timeline-score" style="color:#ec4899">😊8</span> <span class="timeline-score" style="color:#00d4ff">🚀9</span> </div>
+        <div class="timeline-note">"点火后"</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <span class="ctx-badge ctx-manual">MANU</span>
+          <span class="timeline-time">05/31 18:50</span>
+          <span class="shift-badge shift-down">-34</span>
+        </div>
+        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡3</span> <span class="timeline-score" style="color:#6366f1">🧠3</span> <span class="timeline-score" style="color:#10b981">🌤️2</span> <span class="timeline-score" style="color:#ef4444">💪2</span> <span class="timeline-score" style="color:#ec4899">😊2</span> <span class="timeline-score" style="color:#00d4ff">🚀1</span> </div>
+        <div class="timeline-note">"基准"</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <span class="ctx-badge ctx-ignite">IGNITE</span>
+          <span class="timeline-time">05/31 18:50</span>
+          <span class="shift-badge shift-up">+34</span>
+        </div>
+        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡7</span> <span class="timeline-score" style="color:#6366f1">🧠8</span> <span class="timeline-score" style="color:#10b981">🌤️8</span> <span class="timeline-score" style="color:#ef4444">💪7</span> <span class="timeline-score" style="color:#ec4899">😊8</span> <span class="timeline-score" style="color:#00d4ff">🚀9</span> </div>
+        <div class="timeline-note">"点火后"</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <span class="ctx-badge ctx-manual">MANU</span>
+          <span class="timeline-time">05/31 18:50</span>
+          <span class="shift-badge shift-down">-30</span>
+        </div>
+        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡3</span> <span class="timeline-score" style="color:#6366f1">🧠3</span> <span class="timeline-score" style="color:#10b981">🌤️2</span> <span class="timeline-score" style="color:#ef4444">💪2</span> <span class="timeline-score" style="color:#ec4899">😊2</span> <span class="timeline-score" style="color:#00d4ff">🚀1</span> </div>
+        <div class="timeline-note">"基准"</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <span class="ctx-badge ctx-manual">WEB</span>
+          <span class="timeline-time">05/31 18:47</span>
+          
+        </div>
+        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡7</span> <span class="timeline-score" style="color:#6366f1">🧠7</span> <span class="timeline-score" style="color:#10b981">🌤️8</span> <span class="timeline-score" style="color:#ef4444">💪6</span> <span class="timeline-score" style="color:#ec4899">😊7</span> <span class="timeline-score" style="color:#00d4ff">🚀8</span> </div>
+        <div class="timeline-note">"Web 端记录"</div>
+      </div>
+</section>
+
+<footer>
+  <p>PocketOS v2.0 — Body-System Interface</p>
+  <p>Sync to GitHub with <code>pos sync</code></p>
+  <p style="margin-top:8px;opacity:0.5">境随心转 · 斗转星移</p>
+</footer>
+</div>
+</body>
+</html>
