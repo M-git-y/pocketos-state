@@ -1,0 +1,153 @@
+#!/data/data/com.termux/files/usr/bin/node --experimental-detect-module
+
+'use strict';
+
+const path = require('path');
+const libDir = path.join(__dirname, '..', 'lib');
+
+const ui = require(libDir + '/ui.js');
+const mon = require(libDir + '/monitor.js');
+const info = require(libDir + '/info.js');
+const dashboard = require(libDir + '/dashboard.js');
+const ignite = require(libDir + '/ignite.js');
+const state = require(libDir + '/state.js');
+const report = require(libDir + '/report.js');
+const serve = require(libDir + '/serve.js');
+
+const { c } = ui;
+
+// ─── CLI Entry ───────────────────────────────────────────────────────────────
+const cmd = process.argv[2] || '';
+const args = process.argv.slice(3);
+
+async function main() {
+  switch (cmd) {
+    case 'info':
+    case 'status':
+      info.showInfo();
+      break;
+
+    case 'scan':
+    case 'analyze': {
+      const dirs = args.length > 0 ? args : [];
+      await info.showScan(dirs);
+      break;
+    }
+
+    case 'dash':
+    case 'dashboard':
+    case 'live': {
+      const interval = parseInt(args[0]) || 2000;
+      dashboard.runDashboard(interval);
+      return;
+    }
+
+    // ─── Body Watchdog ────────────────────────────────────────────────
+    case 'ignite':
+    case 'fire':
+      ignite.runIgnition();
+      break;
+
+    case 'check':
+    case 'watch':
+      ignite.showStatus();
+      break;
+
+    case 'log': {
+      const action = args[0] || '';
+      if (!action) {
+        console.log(c.warning('\n  Usage: pos log <action>'));
+        console.log(c.dim('  Actions: face, leg, cardio, breath, walk, stretch, ignite, posture\n'));
+      } else {
+        ignite.logAction(action);
+      }
+      break;
+    }
+
+    // ─── State Tracking ───────────────────────────────────────────────
+    case 'state':
+      state.interactiveCapture('manual');
+      break;
+
+    case 'history':
+    case 'trends': {
+      const n = parseInt(args[0]) || 15;
+      state.viewHistory(n);
+      break;
+    }
+
+    // ─── Report & Sync ────────────────────────────────────────────────
+    case 'report':
+      report.generateReport();
+      break;
+
+    case 'serve':
+    case 'web': {
+      const port = parseInt(args[0]) || 8080;
+      serve.startServer(port);
+      // server stays running, don't exit
+      return;
+    }
+
+    case 'sync': {
+      const repoUrl = args[0] || '';
+      report.syncToGitHub(repoUrl);
+      break;
+    }
+
+    case 'help':
+    case '--help':
+    case '-h':
+    case '': {
+      showBanner();
+      showHelp();
+      break;
+    }
+
+    default:
+      console.log(c.danger(`\n  Unknown command: ${cmd}\n`));
+      showHelp();
+      break;
+  }
+}
+
+function showBanner() {
+  console.log(ui.banner);
+}
+
+function showHelp() {
+  console.log(ui.header('COMMANDS'));
+  console.log('');
+  console.log(ui.header('BODY COMMANDS'));
+  console.log('');
+  console.log(`  ${c.hex('f59e0b', 'pos ignite')}  ${c.dim('—')}  ${c.value('90秒点火协议 (面部泵血 + 有氧 + 呼吸)')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos check')}   ${c.dim('—')}  ${c.value('身体 watchdog 状态检查')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos log <action>')} ${c.dim('—')} ${c.value('记录微习惯: face/leg/cardio/breath/walk/stretch/posture')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos state')}  ${c.dim('—')}  ${c.value('捕获当前状态 (6维度评分)')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos history')} ${c.dim('—')} ${c.value('查看状态变迁历史与趋势')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos report')} ${c.dim('—')} ${c.value('生成 HTML 可视化仪表盘')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos sync <repo>')} ${c.dim('—')} ${c.value('生成报告并推送到 GitHub')}`);
+  console.log(`  ${c.hex('f59e0b', 'pos serve')}  ${c.dim('—')}  ${c.value('启动 Web 服务 可在任意设备浏览器记录状态')}`);
+  console.log('');
+  console.log(ui.header('SYSTEM COMMANDS'));
+  console.log('');
+  console.log(`  ${c.primary('pos dash')}    ${c.dim('—')}  ${c.value('Live system dashboard (press q to quit)')}`);
+  console.log(`  ${c.primary('pos info')}    ${c.dim('—')}  ${c.value('Device & system health report')}`);
+  console.log(`  ${c.primary('pos scan')}    ${c.dim('—')}  ${c.value('File system intelligence scan')}`);
+  console.log(`  ${c.primary('pos help')}    ${c.dim('—')}  ${c.value('Show this help')}`);
+  console.log('');
+  console.log(ui.divider());
+  console.log(`\n  ${c.dim('PocketOS v2.0 — Body-System Interface')}`);
+  console.log(`  ${c.dim('Built with Claude Code on Android/Termux')}\n`);
+}
+
+// Handle uncaught errors
+process.on('unhandledRejection', (err) => {
+  console.error(c.danger('\n  Error: ') + err.message);
+  process.exit(1);
+});
+
+main().catch(err => {
+  console.error(c.danger('\n  Fatal: ') + err.message);
+  process.exit(1);
+});
