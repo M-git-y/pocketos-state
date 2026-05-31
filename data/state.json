@@ -1,5 +1,4 @@
 {
-  "version": 1,
   "entries": [
     {
       "ts": 1780224478360,
@@ -13,7 +12,7 @@
         "face": 7,
         "readiness": 8
       },
-      "note": "Web 端记录"
+      "note": "Web ç«¯è®°å½"
     },
     {
       "ts": 1780224604493,
@@ -34,7 +33,7 @@
         "face": 2,
         "readiness": 1
       },
-      "note": "基准"
+      "note": "åºå"
     },
     {
       "ts": 1780224604493,
@@ -55,7 +54,7 @@
         "face": 8,
         "readiness": 9
       },
-      "note": "点火后"
+      "note": "ç¹ç«å"
     },
     {
       "ts": 1780224610519,
@@ -76,7 +75,7 @@
         "face": 2,
         "readiness": 1
       },
-      "note": "基准"
+      "note": "åºå"
     },
     {
       "ts": 1780224610520,
@@ -97,7 +96,33 @@
         "face": 8,
         "readiness": 9
       },
-      "note": "点火后"
+      "note": "ç¹ç«å"
+    },
+    {
+      "ts": 1780227788698,
+      "context": "web",
+      "metrics": {
+        "energy": 6,
+        "clarity": 5,
+        "mood": 6,
+        "body": 5,
+        "face": 5,
+        "readiness": 6
+      },
+      "note": "可以，测试"
+    },
+    {
+      "ts": 1780227788698,
+      "context": "web",
+      "metrics": {
+        "energy": 6,
+        "clarity": 5,
+        "mood": 6,
+        "body": 5,
+        "face": 5,
+        "readiness": 6
+      },
+      "note": "可以，测试"
     }
   ]
 }
