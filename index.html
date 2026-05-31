@@ -1,238 +1,388 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PocketOS — State Dashboard</title>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PocketOS Dashboard</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#0f1117; color:#e2e8f0; min-height:100vh; }
-.container { max-width:720px; margin:0 auto; padding:20px 16px 60px; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+.c{max-width:720px;margin:0 auto;padding:16px 14px 60px}
+/* header */
+.hd{text-align:center;padding:24px 0 16px}
+.hd h1{font-size:24px;background:linear-gradient(135deg,#00d4ff,#6366f1,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hd .sub{color:#64748b;font-size:12px;margin-top:4px}
+/* config bar */
+.cfg{background:#1a1d2e;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px}
+.cfg input{background:#0f1117;border:1px solid #252840;color:#e2e8f0;padding:6px 10px;border-radius:6px;font-size:12px;width:100px}
+.cfg .cfg-token{width:140px}
+.cfg button{background:#6366f1;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer}
+.cfg .cfg-st{font-size:11px}
+.cfg .cfg-on{color:#10b981}.cfg .cfg-off{color:#f59e0b}
+/* score cards */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}
+.sc{background:#1a1d2e;border-radius:10px;padding:14px 8px;text-align:center;border:1px solid #252840}
+.sc .se{font-size:22px}
+.sc .sv{font-size:32px;font-weight:700;line-height:1.2}
+.sc .sl{font-size:10px;color:#94a3b8;margin-top:2px}
+.du{color:#10b981;font-weight:600;font-size:10px}
+.dd{color:#ef4444;font-weight:600;font-size:10px}
+/* sections */
+.section{margin:20px 0}
+.st{font-size:15px;font-weight:600;color:#94a3b8;padding-bottom:8px;border-bottom:1px solid #1e2332;margin-bottom:10px}
+/* capture form */
+.cf{background:linear-gradient(135deg,#1a1d2e,#252840);border-radius:12px;padding:16px;margin:12px 0;border:1px solid #333}
+.cf-title{font-size:14px;font-weight:600;color:#94a3b8;margin-bottom:12px}
+.cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cf-row{display:flex;align-items:center;gap:6px;background:#0f1117;border-radius:6px;padding:5px 8px}
+.cf-row span.e{font-size:16px;flex-shrink:0}
+.cf-row span.l{font-size:10px;color:#64748b;width:48px}
+.cf-row input[type=range]{flex:1;accent-color:#00d4ff;height:4px}
+.cf-row span.v{color:#00d4ff;font-weight:700;font-size:13px;width:18px;text-align:center}
+.cf textarea{grid-column:1/-1;width:100%;background:#0f1117;border:none;border-radius:6px;padding:8px 10px;color:#e2e8f0;font:inherit;resize:vertical}
+.cf-btn{grid-column:1/-1;display:flex;gap:8px}
+.cf-btn button{flex:1;padding:10px;background:linear-gradient(135deg,#00d4ff,#6366f1);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+.cf-status{font-size:11px;text-align:center;margin-top:8px}
+/* timeline */
+.ti{background:#1a1d2e;border-radius:10px;padding:10px 12px;margin-bottom:6px;border-left:3px solid #252840}
+.ti.ign{border-left-color:#f59e0b}
+.ti-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ti-ctx{font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase}
+.ti-ctx.ign{background:#f59e0b22;color:#f59e0b}
+.ti-ctx.man{background:#00d4ff22;color:#00d4ff}
+.ti-ctx.web{background:#10b98122;color:#10b981}
+.ti-time{font-size:10px;color:#64748b}
+.ti-shift{font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px}
+.ti-shift.up{background:#10b98122;color:#10b981}
+.ti-shift.dn{background:#ef444422;color:#ef4444}
+.ti-scores{font-size:12px;display:flex;flex-wrap:wrap;gap:6px}
+.ti-note{color:#94a3b8;font-style:italic;font-size:12px;margin-top:3px;padding-left:6px;border-left:2px solid #252840}
+/* charts */
+.cr{display:flex;gap:8px;margin-bottom:8px}
+.cc{flex:1;background:#1a1d2e;border-radius:8px;padding:10px;border:1px solid #252840;min-width:0}
+.ct{font-size:11px;color:#94a3b8;margin-bottom:6px}
+.cs{width:100%;height:auto;display:block}
+.cg{stroke:#1e2332;stroke-width:1}
+.cl{font-size:8px;fill:#64748b;font-family:monospace}
+.chart-empty{color:#64748b;font-size:11px;text-align:center;padding:16px 0}
+/* stats */
+.stg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.stb{background:#1a1d2e;border-radius:8px;padding:12px 6px;text-align:center;border:1px solid #252840}
+.stn{font-size:24px;font-weight:700;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.std{font-size:9px;color:#64748b;margin-top:2px}
+/* action bars */
+.ab{background:#1a1d2e;border-radius:8px;padding:10px;border:1px solid #252840}
+.abi{display:flex;align-items:center;gap:8px;padding:4px 0}
+.abi .al{width:70px;font-size:10px;color:#94a3b8;text-align:right;flex-shrink:0}
+.abi .af{flex:1;height:5px;background:#1e2332;border-radius:3px;overflow:hidden}
+.abi .af div{height:100%;background:linear-gradient(90deg,#00d4ff,#6366f1);border-radius:3px}
+.abi .ac{font-size:10px;color:#64748b;width:20px;text-align:left}
+.empty{text-align:center;padding:24px;color:#64748b;font-size:12px}
+.empty code{color:#00d4ff;background:#1e2332;padding:2px 6px;border-radius:4px}
+footer{text-align:center;padding:16px 0;color:#475569;font-size:10px}
+footer a{color:#6366f1;text-decoration:none}
+@media(max-width:480px){.sg{grid-template-columns:repeat(2,1fr)}.stg{grid-template-columns:repeat(2,1fr)}.cr{flex-direction:column}.cf-grid{grid-template-columns:1fr}}
+</style></head>
+<body><div class="c">
+<div class="hd"><h1>PocketOS State Dashboard</h1><div class="sub" id="hd-sub">Generated 2026-05-31 · <span id="entry-count">5</span> entries · <span id="streak-count">1</span> day streak</div></div>
 
-/* Header */
-header { text-align:center; padding:30px 0 20px; }
-header h1 { font-size:28px; background:linear-gradient(135deg, #00d4ff, #6366f1, #ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-header .sub { color:#64748b; font-size:13px; margin-top:4px; }
-
-/* Score Cards */
-.score-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:16px 0 24px; }
-.score-card { background:#1a1d2e; border-radius:12px; padding:16px 10px; text-align:center; border:1px solid #252840; }
-.score-emoji { font-size:24px; margin-bottom:6px; }
-.score-value { font-size:36px; font-weight:700; line-height:1; }
-.score-label { font-size:11px; color:#94a3b8; margin-top:4px; }
-.empty-state { grid-column:1/-1; text-align:center; padding:30px; color:#64748b; }
-.empty-state code { color:#00d4ff; background:#1e2332; padding:2px 8px; border-radius:4px; }
-
-/* Delta badges */
-.delta-up { color:#10b981; font-weight:600; font-size:11px; margin-left:2px; }
-.delta-down { color:#ef4444; font-weight:600; font-size:11px; margin-left:2px; }
-
-/* Sections */
-section { margin:24px 0; }
-.section-title { font-size:16px; font-weight:600; color:#94a3b8; padding-bottom:10px; border-bottom:1px solid #1e2332; margin-bottom:14px; }
-.section-title .emoji { margin-right:6px; }
-
-/* Timeline */
-.timeline-item { background:#1a1d2e; border-radius:10px; padding:12px 14px; margin-bottom:8px; border-left:3px solid #252840; }
-.timeline-item:has(.ctx-ignite) { border-left-color:#f59e0b; }
-.timeline-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.ctx-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; letter-spacing:0.5px; }
-.ctx-ignite { background:#f59e0b22; color:#f59e0b; }
-.ctx-morning { background:#f59e0b22; color:#f59e0b; }
-.ctx-manual { background:#00d4ff22; color:#00d4ff; }
-.timeline-time { font-size:11px; color:#64748b; }
-.shift-badge { font-size:10px; font-weight:700; padding:1px 6px; border-radius:8px; }
-.shift-up { background:#10b98122; color:#10b981; }
-.shift-down { background:#ef444422; color:#ef4444; }
-.timeline-scores { font-size:13px; display:flex; flex-wrap:wrap; gap:8px; }
-.timeline-score { font-size:13px; }
-.timeline-note { color:#94a3b8; font-style:italic; font-size:13px; margin-top:4px; padding-left:2px; border-left:2px solid #252840; padding-left:8px; }
-
-/* Charts */
-.chart-row { display:flex; gap:12px; margin-bottom:12px; }
-.chart-cell { flex:1; background:#1a1d2e; border-radius:10px; padding:12px; border:1px solid #252840; min-width:0; }
-.chart-title { font-size:12px; color:#94a3b8; margin-bottom:8px; }
-.chart-svg { width:100%; height:auto; display:block; }
-.chart-label { font-size:9px; fill:#64748b; font-family:monospace; }
-.chart-grid { stroke:#1e2332; stroke-width:1; }
-.chart-empty { color:#64748b; font-size:12px; text-align:center; padding:20px 0; }
-
-/* Stats */
-.stat-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:16px; }
-.stat-box { background:#1a1d2e; border-radius:10px; padding:14px 8px; text-align:center; border:1px solid #252840; }
-.stat-num { font-size:28px; font-weight:700; background:linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.stat-desc { font-size:10px; color:#64748b; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px; }
-
-/* Action breakdown */
-.action-breakdown { background:#1a1d2e; border-radius:10px; padding:14px; border:1px solid #252840; }
-.action-bar { display:flex; align-items:center; gap:10px; padding:6px 0; }
-.action-label { width:80px; font-size:12px; color:#94a3b8; text-align:right; flex-shrink:0; }
-.action-bar-fill { flex:1; height:6px; background:#1e2332; border-radius:3px; overflow:hidden; }
-.action-bar-fill div { height:100%; background:linear-gradient(90deg, #00d4ff, #6366f1); border-radius:3px; transition:width 0.5s; }
-.action-count { font-size:12px; color:#64748b; width:24px; text-align:left; flex-shrink:0; }
-
-/* Footer */
-footer { text-align:center; padding:20px 0; color:#475569; font-size:11px; }
-footer a { color:#6366f1; text-decoration:none; }
-
-/* Mobile */
-@media (max-width:480px) {
-  .score-grid { grid-template-columns:repeat(2, 1fr); }
-  .stat-grid { grid-template-columns:repeat(2, 1fr); }
-  .chart-row { flex-direction:column; }
-}
-</style>
-</head>
-<body>
-<div class="container">
-<header>
-  <h1>PocketOS State Dashboard</h1>
-  <div class="sub">Generated 2026-05-31 19:08:48 · 5 entries · 1 day streak</div>
-</header>
-
-<section>
-  <div class="section-title"><span class="emoji">📊</span>Current State — 2026/5/31</div>
-  <div class="score-grid">
-      <div class="score-card">
-        <div class="score-emoji">⚡</div>
-        <div class="score-value" style="color:#f59e0b">7</div>
-        <div class="score-label">Energy </div>
-      </div>
-      <div class="score-card">
-        <div class="score-emoji">🧠</div>
-        <div class="score-value" style="color:#6366f1">8</div>
-        <div class="score-label">Clarity <span class="delta-up">+1</span></div>
-      </div>
-      <div class="score-card">
-        <div class="score-emoji">🌤️</div>
-        <div class="score-value" style="color:#10b981">8</div>
-        <div class="score-label">Mood </div>
-      </div>
-      <div class="score-card">
-        <div class="score-emoji">💪</div>
-        <div class="score-value" style="color:#ef4444">7</div>
-        <div class="score-label">Body <span class="delta-up">+1</span></div>
-      </div>
-      <div class="score-card">
-        <div class="score-emoji">😊</div>
-        <div class="score-value" style="color:#ec4899">8</div>
-        <div class="score-label">Face <span class="delta-up">+1</span></div>
-      </div>
-      <div class="score-card">
-        <div class="score-emoji">🚀</div>
-        <div class="score-value" style="color:#00d4ff">9</div>
-        <div class="score-label">Readiness <span class="delta-up">+1</span></div>
-      </div></div>
-</section>
-
-
-
-
-<section>
-  <div class="section-title"><span class="emoji">📈</span>Trend Charts</div>
-  <div class="chart-row"><div class="chart-cell"><div class="chart-title">⚡ Energy</div>
-    <svg viewBox="0 0 600 120" class="chart-svg">
-      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
-      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
-      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 38.3 L 448.8 76.1 L 590.0 38.3  L 590.0 95.0 L 25.0 95.0 Z" fill="#f59e0b22" stroke="none"/>
-      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 38.3 L 448.8 76.1 L 590.0 38.3 " fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="25.0" cy="38.3" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="76.1" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="38.3" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="76.1" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="38.3" r="3" fill="#f59e0b" stroke="#fff" stroke-width="1"/>
-    </svg></div><div class="chart-cell"><div class="chart-title">🧠 Clarity</div>
-    <svg viewBox="0 0 600 120" class="chart-svg">
-      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
-      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
-      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 28.9 L 448.8 76.1 L 590.0 28.9  L 590.0 95.0 L 25.0 95.0 Z" fill="#6366f122" stroke="none"/>
-      <path d="M 25.0 38.3 L 166.3 76.1 L 307.5 28.9 L 448.8 76.1 L 590.0 28.9 " fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="25.0" cy="38.3" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="76.1" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="28.9" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="76.1" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="28.9" r="3" fill="#6366f1" stroke="#fff" stroke-width="1"/>
-    </svg></div></div>
-<div class="chart-row"><div class="chart-cell"><div class="chart-title">🌤️ Mood</div>
-    <svg viewBox="0 0 600 120" class="chart-svg">
-      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
-      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
-      <path d="M 25.0 28.9 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9  L 590.0 95.0 L 25.0 95.0 Z" fill="#10b98122" stroke="none"/>
-      <path d="M 25.0 28.9 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9 " fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="25.0" cy="28.9" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="85.6" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="28.9" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="85.6" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="28.9" r="3" fill="#10b981" stroke="#fff" stroke-width="1"/>
-    </svg></div><div class="chart-cell"><div class="chart-title">💪 Body</div>
-    <svg viewBox="0 0 600 120" class="chart-svg">
-      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
-      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
-      <path d="M 25.0 47.8 L 166.3 85.6 L 307.5 38.3 L 448.8 85.6 L 590.0 38.3  L 590.0 95.0 L 25.0 95.0 Z" fill="#ef444422" stroke="none"/>
-      <path d="M 25.0 47.8 L 166.3 85.6 L 307.5 38.3 L 448.8 85.6 L 590.0 38.3 " fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="25.0" cy="47.8" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="85.6" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="38.3" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="85.6" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="38.3" r="3" fill="#ef4444" stroke="#fff" stroke-width="1"/>
-    </svg></div></div>
-<div class="chart-row"><div class="chart-cell"><div class="chart-title">😊 Face</div>
-    <svg viewBox="0 0 600 120" class="chart-svg">
-      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
-      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
-      <path d="M 25.0 38.3 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9  L 590.0 95.0 L 25.0 95.0 Z" fill="#ec489922" stroke="none"/>
-      <path d="M 25.0 38.3 L 166.3 85.6 L 307.5 28.9 L 448.8 85.6 L 590.0 28.9 " fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="25.0" cy="38.3" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="85.6" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="28.9" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="85.6" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="28.9" r="3" fill="#ec4899" stroke="#fff" stroke-width="1"/>
-    </svg></div><div class="chart-cell"><div class="chart-title">🚀 Readiness</div>
-    <svg viewBox="0 0 600 120" class="chart-svg">
-      <line x1="25" y1="95" x2="590" y2="95" class="chart-grid"/><line x1="25" y1="66.66666666666667" x2="590" y2="66.66666666666667" class="chart-grid"/><line x1="25" y1="38.333333333333336" x2="590" y2="38.333333333333336" class="chart-grid"/><line x1="25" y1="10" x2="590" y2="10" class="chart-grid"/>
-      <text x="20" y="99" text-anchor="end" class="chart-label">1</text><text x="20" y="70.66666666666667" text-anchor="end" class="chart-label">4</text><text x="20" y="42.333333333333336" text-anchor="end" class="chart-label">7</text><text x="20" y="14" text-anchor="end" class="chart-label">10</text>
-      <path d="M 25.0 28.9 L 166.3 95.0 L 307.5 19.4 L 448.8 95.0 L 590.0 19.4  L 590.0 95.0 L 25.0 95.0 Z" fill="#00d4ff22" stroke="none"/>
-      <path d="M 25.0 28.9 L 166.3 95.0 L 307.5 19.4 L 448.8 95.0 L 590.0 19.4 " fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="25.0" cy="28.9" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="166.3" cy="95.0" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="307.5" cy="19.4" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="448.8" cy="95.0" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/><circle cx="590.0" cy="19.4" r="3" fill="#00d4ff" stroke="#fff" stroke-width="1"/>
-    </svg></div></div>
-</section>
-
-
-<section>
-  <div class="section-title"><span class="emoji">📋</span>Timeline</div>
-  
-      <div class="timeline-item">
-        <div class="timeline-header">
-          <span class="ctx-badge ctx-ignite">IGNITE</span>
-          <span class="timeline-time">05/31 18:50</span>
-          <span class="shift-badge shift-up">+34</span>
-        </div>
-        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡7</span> <span class="timeline-score" style="color:#6366f1">🧠8</span> <span class="timeline-score" style="color:#10b981">🌤️8</span> <span class="timeline-score" style="color:#ef4444">💪7</span> <span class="timeline-score" style="color:#ec4899">😊8</span> <span class="timeline-score" style="color:#00d4ff">🚀9</span> </div>
-        <div class="timeline-note">"点火后"</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-header">
-          <span class="ctx-badge ctx-manual">MANU</span>
-          <span class="timeline-time">05/31 18:50</span>
-          <span class="shift-badge shift-down">-34</span>
-        </div>
-        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡3</span> <span class="timeline-score" style="color:#6366f1">🧠3</span> <span class="timeline-score" style="color:#10b981">🌤️2</span> <span class="timeline-score" style="color:#ef4444">💪2</span> <span class="timeline-score" style="color:#ec4899">😊2</span> <span class="timeline-score" style="color:#00d4ff">🚀1</span> </div>
-        <div class="timeline-note">"基准"</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-header">
-          <span class="ctx-badge ctx-ignite">IGNITE</span>
-          <span class="timeline-time">05/31 18:50</span>
-          <span class="shift-badge shift-up">+34</span>
-        </div>
-        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡7</span> <span class="timeline-score" style="color:#6366f1">🧠8</span> <span class="timeline-score" style="color:#10b981">🌤️8</span> <span class="timeline-score" style="color:#ef4444">💪7</span> <span class="timeline-score" style="color:#ec4899">😊8</span> <span class="timeline-score" style="color:#00d4ff">🚀9</span> </div>
-        <div class="timeline-note">"点火后"</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-header">
-          <span class="ctx-badge ctx-manual">MANU</span>
-          <span class="timeline-time">05/31 18:50</span>
-          <span class="shift-badge shift-down">-30</span>
-        </div>
-        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡3</span> <span class="timeline-score" style="color:#6366f1">🧠3</span> <span class="timeline-score" style="color:#10b981">🌤️2</span> <span class="timeline-score" style="color:#ef4444">💪2</span> <span class="timeline-score" style="color:#ec4899">😊2</span> <span class="timeline-score" style="color:#00d4ff">🚀1</span> </div>
-        <div class="timeline-note">"基准"</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-header">
-          <span class="ctx-badge ctx-manual">WEB</span>
-          <span class="timeline-time">05/31 18:47</span>
-          
-        </div>
-        <div class="timeline-scores"><span class="timeline-score" style="color:#f59e0b">⚡7</span> <span class="timeline-score" style="color:#6366f1">🧠7</span> <span class="timeline-score" style="color:#10b981">🌤️8</span> <span class="timeline-score" style="color:#ef4444">💪6</span> <span class="timeline-score" style="color:#ec4899">😊7</span> <span class="timeline-score" style="color:#00d4ff">🚀8</span> </div>
-        <div class="timeline-note">"Web 端记录"</div>
-      </div>
-</section>
-
-<footer>
-  <p>PocketOS v2.0 — Body-System Interface</p>
-  <p>Sync to GitHub with <code>pos sync</code></p>
-  <p style="margin-top:8px;opacity:0.5">境随心转 · 斗转星移</p>
-</footer>
+<!-- Config Bar -->
+<div class="cfg" id="cfg-bar">
+  <span style="color:#64748b">⚙</span>
+  <input id="cfg-owner" placeholder="GitHub user" value="">
+  <span style="color:#64748b">/</span>
+  <input id="cfg-repo" placeholder="repo name" value="" style="width:130px">
+  <input id="cfg-token" class="cfg-token" placeholder="Token (ghp_...)" type="password" value="">
+  <button onclick="saveCfg()">连接</button>
+  <span class="cfg-st" id="cfg-status">离线模式</span>
 </div>
-</body>
-</html>
+
+<!-- Capture Form -->
+<div class="cf">
+  <div class="cf-title">📝 Capture State</div>
+  <div class="cf-grid" id="capture-form">
+    <!-- filled by JS -->
+  </div>
+  <div class="cf-status" id="cf-msg"></div>
+</div>
+
+<!-- Score Cards -->
+<div class="section"><div class="st">📊 Current State</div><div class="sg" id="score-cards"></div></div>
+
+<!-- Stats -->
+<div class="section"><div class="st">🔥 Stats</div>
+  <div class="stg" id="stats-grid"></div>
+  <div class="ab" id="action-bars"></div>
+</div>
+
+<!-- Charts -->
+<div class="section"><div class="st">📈 Trends</div><div id="charts-area"></div></div>
+
+<!-- Timeline -->
+<div class="section"><div class="st">📋 Timeline</div><div id="timeline-area"></div></div>
+
+<footer><p>PocketOS — Body-System Interface</p><p id="footer-mode">Mode: local</p><p style="margin-top:4px;opacity:.5">境随心转 · 斗转星移</p></footer>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────
+const METRICS = [{key:'energy',emoji:'⚡',label:'能量',color:'#f59e0b'},{key:'clarity',emoji:'🧠',label:'清醒度',color:'#6366f1'},{key:'mood',emoji:'🌤️',label:'心境',color:'#10b981'},{key:'body',emoji:'💪',label:'身体感',color:'#ef4444'},{key:'face',emoji:'😊',label:'面部活力',color:'#ec4899'},{key:'readiness',emoji:'🚀',label:'行动意愿',color:'#00d4ff'}];
+const EMBEDDED = {"entries":[{"ts":1780224478360,"context":"web","before":null,"metrics":{"energy":7,"mood":8,"body":6,"clarity":7,"face":7,"readiness":8},"note":"Web 端记录"},{"ts":1780224604493,"context":"manual","before":{"energy":7,"mood":8,"body":6,"clarity":7,"face":7,"readiness":8},"metrics":{"energy":3,"mood":2,"body":2,"clarity":3,"face":2,"readiness":1},"note":"基准"},{"ts":1780224604493,"context":"ignite","before":{"energy":3,"mood":2,"body":2,"clarity":3,"face":2,"readiness":1},"metrics":{"energy":7,"mood":8,"body":7,"clarity":8,"face":8,"readiness":9},"note":"点火后"},{"ts":1780224610519,"context":"manual","before":{"energy":7,"mood":8,"body":7,"clarity":8,"face":8,"readiness":9},"metrics":{"energy":3,"mood":2,"body":2,"clarity":3,"face":2,"readiness":1},"note":"基准"},{"ts":1780224610520,"context":"ignite","before":{"energy":3,"mood":2,"body":2,"clarity":3,"face":2,"readiness":1},"metrics":{"energy":7,"mood":8,"body":7,"clarity":8,"face":8,"readiness":9},"note":"点火后"}]};
+let entries = EMBEDDED.entries || [];
+let records = [];
+let githubCfg = { owner:'', repo:'', token:'' };
+
+// load saved config from localStorage
+try {
+  const saved = JSON.parse(localStorage.getItem('pos-cfg')||'{}');
+  if(saved.owner) githubCfg = saved;
+  if(githubCfg.owner) document.getElementById('cfg-owner').value = githubCfg.owner;
+  if(githubCfg.repo) document.getElementById('cfg-repo').value = githubCfg.repo;
+  if(githubCfg.token) document.getElementById('cfg-token').value = githubCfg.token;
+} catch(_){}
+
+// ─── RENDER ───────────────────────────────────────────────────────
+function formatDate(ts){
+  const d=new Date(ts);
+  return d.toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function renderAll(){
+  const now=Date.now(), todayStart=new Date().setHours(0,0,0,0);
+  const todayE=entries.filter(e=>e.ts>todayStart);
+  const todayR=records.filter(r=>r.ts>todayStart);
+  const latest=entries.length>0?entries[entries.length-1]:null;
+  const first=entries.length>0?entries[0]:null;
+
+  // score cards
+  let sc='';
+  if(latest && latest.metrics){
+    METRICS.forEach(m=>{
+      const v=latest.metrics[m.key];
+      const fv=first&&first.metrics?first.metrics[m.key]:null;
+      const d=fv!==null&&v!==null?v-fv:null;
+      const dh=d!==null&&d!==0?`<span class="${d>0?'du':'dd'}">${d>0?'+':''}${d}</span>`:'';
+      sc+=`<div class="sc"><div class="se">${m.emoji}</div><div class="sv" style="color:${m.color}">${v||'—'}</div><div class="sl">${m.label} ${dh}</div></div>`;
+    });
+  } else { sc='<div class="empty" style="grid-column:1/-1">运行 <code>pos state</code> 或下方表单记录</div>'; }
+  document.getElementById('score-cards').innerHTML=sc;
+
+  // stats
+  const ic=records.filter(r=>r.action==='ignition').length;
+  const ac={}; records.forEach(r=>{ac[r.action]=(ac[r.action]||0)+1;});
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stb"><div class="stn">${ic}</div><div class="std">点火次数</div></div>
+    <div class="stb"><div class="stn">${records.length}</div><div class="std">总动作</div></div>
+    <div class="stb"><div class="stn">${todayR.length}</div><div class="std">今日动作</div></div>
+    <div class="stb"><div class="stn">${streak()}</div><div class="std">连续天数</div></div>`;
+
+  const actionLabels={'face-pump':'面部泵血','leg-raise':'直腿抬举','upper-cardio':'上肢有氧','deep-breath':'深呼吸','micro-walk':'步行','stand-stretch':'拉伸','ignition':'点火','posture-fix':'姿态'};
+  let ab='';
+  Object.entries(ac).sort((a,b)=>b[1]-a[1]).forEach(([k,c])=>{
+    const pct=Math.round(c/records.length*100)||0;
+    ab+=`<div class="abi"><span class="al">${actionLabels[k]||k}</span><div class="af"><div style="width:${pct}%"></div></div><span class="ac">${c}</span></div>`;
+  });
+  if(!ab) ab='<div class="empty">暂无动作记录</div>';
+  document.getElementById('action-bars').innerHTML=ab;
+
+  // charts
+  let charts='';
+  if(entries.length>=2){
+    for(let i=0;i<METRICS.length;i+=2){
+      const m1=METRICS[i], m2=METRICS[i+1];
+      let row=`<div class="cr"><div class="cc"><div class="ct">${m1.emoji} ${m1.label}</div><div id="chart-${m1.key}"></div></div>`;
+      if(m2) row+=`<div class="cc"><div class="ct">${m2.emoji} ${m2.label}</div><div id="chart-${m2.key}"></div></div>`;
+      row+='</div>'; charts+=row;
+    }
+    document.getElementById('charts-area').innerHTML=charts;
+    // draw charts after DOM update
+    setTimeout(()=>{
+      METRICS.forEach(m=>{
+        const el=document.getElementById('chart-'+m.key);
+        if(el) el.innerHTML=buildSVG(entries,m.key);
+      });
+    },10);
+  } else { document.getElementById('charts-area').innerHTML='<div class="empty">需要 2 条以上状态记录才能显示趋势图</div>'; }
+
+  // timeline
+  let tl='';
+  if(entries.length>0){
+    entries.slice(-30).reverse().forEach((e,i)=>{
+      const ei=entries.indexOf(e);
+      const prev=ei>0&&entries[ei-1].metrics?entries[ei-1].metrics:null;
+      let shift=0; if(prev&&e.metrics) METRICS.forEach(m=>{if(prev[m.key]!==undefined&&e.metrics[m.key]!==undefined) shift+=e.metrics[m.key]-prev[m.key];});
+      const sh=shift!==0?`<span class="ti-shift ${shift>0?'up':'dn'}">${shift>0?'+':''}${shift}</span>`:'';
+
+      let scores=''; METRICS.forEach(m=>{
+        if(e.metrics[m.key]!==undefined) scores+=`<span style="font-size:12px;color:${m.color}">${m.emoji}${e.metrics[m.key]}</span> `;
+      });
+      const ctx=e.context||'manual';
+      tl+=`<div class="ti ${ctx==='ignite'?'ign':''}">
+        <div class="ti-h"><span class="ti-ctx ${ctx==='ignite'?'ign':ctx==='web'?'web':'man'}">${ctx.toUpperCase()}</span><span class="ti-time">${formatDate(e.ts)}</span>${sh}</div>
+        <div class="ti-scores">${scores}</div>
+        ${e.note?`<div class="ti-note">"${e.note}"</div>`:''}
+      </div>`;
+    });
+  } else { tl='<div class="empty">尚无状态记录</div>'; }
+  document.getElementById('timeline-area').innerHTML=tl;
+
+  // update header
+  document.getElementById('entry-count').textContent=entries.length;
+  document.getElementById('streak-count').textContent=streak();
+}
+
+function streak(){
+  const ds=new Set(); entries.forEach(e=>ds.add(new Date(e.ts).toDateString()));
+  const sd=Array.from(ds).sort().reverse(); let s=0;
+  for(let i=0;i<sd.length;i++){ if(sd[i]===new Date(Date.now()-i*864e5).toDateString()) s++; else break; }
+  return s;
+}
+
+// ─── SVG CHART ────────────────────────────────────────────────────
+function buildSVG(entries,key,w=560,h=100){
+  const m=METRICS.find(x=>x.key===key);
+  const pts=entries.map((e,i)=>e.metrics&&e.metrics[key]?{i,v:e.metrics[key]}:null).filter(Boolean);
+  if(pts.length<2) return '<div class="chart-empty">需要更多数据</div>';
+  const p={t:6,r:6,b:20,l:20},wt=w-p.l-p.r,ht=h-p.t-p.b;
+  const x=i=>p.l+(i/(pts.length-1))*wt, y=v=>p.t+ht-((v-1)/9)*ht;
+  let d='',a=''; pts.forEach((pt,i)=>{ d+=(i?'L':'M')+` ${x(i).toFixed(1)} ${y(pt.v).toFixed(1)}`; });
+  a=d+` L ${x(pts.length-1).toFixed(1)} ${y(1).toFixed(1)} L ${x(0).toFixed(1)} ${y(1).toFixed(1)} Z`;
+  let g='',yl='';
+  for(let v=1;v<=10;v+=3){g+=`<line x1="${p.l}" y1="${y(v)}" x2="${w-p.r}" y2="${y(v)}" class="cg"/>`;yl+=`<text x="${p.l-3}" y="${y(v)+3}" class="cl">${v}</text>`;}
+  return `<svg viewBox="0 0 ${w} ${h}" class="cs">${g}${yl}<path d="${a}" fill="${m.color}15"/><path d="${d}" fill="none" stroke="${m.color}" stroke-width="2"/></svg>`;
+}
+
+// ─── CAPTURE FORM ─────────────────────────────────────────────────
+function buildCaptureForm(){
+  let html='';
+  METRICS.forEach(m=>{
+    html+=`<div class="cf-row">
+      <span class="e">${m.emoji}</span><span class="l">${m.label}</span>
+      <input type="range" id="cf-${m.key}" min="1" max="10" value="5" oninput="document.getElementById('cv-${m.key}').textContent=this.value">
+      <span class="v" id="cv-${m.key}">5</span>
+    </div>`;
+  });
+  html+=`<textarea id="cf-note" placeholder="一句话感受..." rows="2"></textarea>`;
+  html+=`<div class="cf-btn"><button id="cf-save-btn" onclick="captureState()">💾 Save State</button></div>`;
+  document.getElementById('capture-form').innerHTML=html;
+}
+
+// ─── GITHUB API ────────────────────────────────────────────────────
+async function captureState(){
+  const btn=document.getElementById('cf-save-btn');
+  const msg=document.getElementById('cf-msg');
+  const metrics={}; METRICS.forEach(m=>{ metrics[m.key]=parseInt(document.getElementById('cf-'+m.key).value); });
+  const note=document.getElementById('cf-note').value.trim();
+  const entry={ts:Date.now(),context:'web',metrics,note};
+
+  // Local save first (always works)
+  entries.push(entry);
+  renderAll();
+  msg.innerHTML='<span style="color:#10b981">✓ Saved locally · <button onclick="downloadBackup()" style="background:none;border:none;color:#6366f1;cursor:pointer;text-decoration:underline;font-size:11px">Download backup</button></span>';
+  btn.textContent='✅ Saved!'; setTimeout(()=>{btn.textContent='💾 Save State';},3000);
+
+  // Try cloud save via GitHub API
+  if(githubCfg.token && githubCfg.owner && githubCfg.repo){
+    msg.innerHTML='<span style="color:#f59e0b">⏳ Syncing to GitHub...</span>';
+    try {
+      // 1. Read current state file from GitHub to get SHA
+      const apiUrl=`https://api.github.com/repos/${githubCfg.owner}/${githubCfg.repo}/contents/data/state.json`;
+      const getRes=await fetch(apiUrl,{headers:{'Authorization':'token '+githubCfg.token}});
+      if(!getRes.ok) throw new Error('Read failed: '+getRes.status);
+      const fileData=await getRes.json();
+      const sha=fileData.sha;
+      const remoteState=JSON.parse(atob(fileData.content));
+      const remoteEntries=remoteState.entries||[];
+
+      // 2. Merge: all remote entries + our new entry (dedup by ts)
+      const allTs=new Set(remoteEntries.map(e=>e.ts));
+      const merged=[...remoteEntries];
+      if(!allTs.has(entry.ts)) merged.push(entry);
+      // Also add any local entries not in remote
+      entries.forEach(e=>{if(!allTs.has(e.ts)) merged.push(e);});
+      merged.sort((a,b)=>a.ts-b.ts);
+
+      // 3. Commit to GitHub
+      const content=btoa(unescape(encodeURIComponent(JSON.stringify({entries:merged},null,2))));
+      const putRes=await fetch(apiUrl,{
+        method:'PUT',
+        headers:{'Authorization':'token '+githubCfg.token,'Content-Type':'application/json'},
+        body:JSON.stringify({message:`state: ${new Date().toISOString().slice(0,16)}`,content,sha})
+      });
+      if(putRes.ok){
+        msg.innerHTML='<span style="color:#10b981">✓ Saved to GitHub · Refresh page in a minute to see charts update</span>';
+        // Also try to trigger Pages rebuild
+        try{ await fetch(`https://api.github.com/repos/${githubCfg.owner}/${githubCfg.repo}/pages/builds`,{method:'POST',headers:{'Authorization':'token '+githubCfg.token,'Accept':'application/vnd.github+json'}}); }catch(_){}
+      } else {
+        const err=await putRes.json();
+        msg.innerHTML=`<span style="color:#ef4444">GitHub write failed: ${err.message||'unknown'} · <button onclick="downloadBackup()" style="background:none;border:none;color:#6366f1;cursor:pointer;text-decoration:underline;font-size:11px">下载备份</button></span>`;
+      }
+    } catch(e){
+      msg.innerHTML=`<span style="color:#ef4444">Sync error: ${e.message} · <button onclick="downloadBackup()" style="background:none;border:none;color:#6366f1;cursor:pointer;text-decoration:underline;font-size:11px">下载备份</button></span>`;
+    }
+  }
+  updateFooter();
+}
+
+// ─── CONFIG ────────────────────────────────────────────────────────
+function saveCfg(){
+  githubCfg.owner=document.getElementById('cfg-owner').value.trim();
+  githubCfg.repo=document.getElementById('cfg-repo').value.trim();
+  githubCfg.token=document.getElementById('cfg-token').value.trim();
+  localStorage.setItem('pos-cfg',JSON.stringify(githubCfg));
+  document.getElementById('cfg-status').innerHTML=githubCfg.token?'<span class="cfg-on">● 已连接</span>':'<span class="cfg-off">● 离线模式</span>';
+  document.getElementById('fill-cfg-hint').style.display='none';
+  if(githubCfg.token){ loadFromGitHub(); }
+  updateFooter();
+}
+
+async function loadFromGitHub(){
+  if(!githubCfg.token||!githubCfg.owner||!githubCfg.repo) return;
+  try {
+    const apiUrl=`https://api.github.com/repos/${githubCfg.owner}/${githubCfg.repo}/contents/data/state.json`;
+    const res=await fetch(apiUrl,{headers:{'Authorization':'token '+githubCfg.token}});
+    if(!res.ok) return;
+    const fd=await res.json();
+    const remote=JSON.parse(atob(fd.content));
+    if(remote.entries && remote.entries.length>0){
+      entries=remote.entries;
+      renderAll();
+      document.getElementById('footer-mode').textContent='Mode: cloud (GitHub)';
+      document.getElementById('cfg-status').innerHTML='<span class="cfg-on">● 已同步</span>';
+    }
+  } catch(_){}
+}
+
+function downloadBackup(){
+  const blob=new Blob([JSON.stringify({entries},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='pocketos-state-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function updateFooter(){
+  document.getElementById('footer-mode').textContent=githubCfg.token?'Mode: cloud (GitHub)':'Mode: local (no GitHub connected)';
+}
+
+// Auto detect owner/repo from URL (GitHub Pages)
+(function(){
+  const host=window.location.hostname;
+  const path=window.location.pathname;
+  const m=host.match(/^(.+).github.io$/);
+  if(m){ githubCfg.owner=m[1]; githubCfg.repo=path.split('/')[1]||''; }
+  if(githubCfg.owner) document.getElementById('cfg-owner').value=githubCfg.owner;
+  if(githubCfg.repo) document.getElementById('cfg-repo').value=githubCfg.repo;
+})();
+if(githubCfg.token){ document.getElementById('cfg-token').value=githubCfg.token; }
+
+// Check if token is valid on load
+if(githubCfg.token){
+  document.getElementById('cfg-status').innerHTML='<span class="cfg-on">● 已连接</span>';
+  loadFromGitHub().then(updateFooter);
+} else {
+  document.getElementById('cfg-status').innerHTML='<span class="cfg-off">● 离线模式</span>';
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────
+buildCaptureForm();
+renderAll();
+updateFooter();
+</script></body></html>
